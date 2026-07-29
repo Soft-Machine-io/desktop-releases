@@ -6,9 +6,15 @@
   outputs =
     { self, nixpkgs }:
     let
-      # Bump `version` and the three `hash` values together on each release.
-      # `./update.sh <version>` re-prefetches all three for you.
-      version = "0.1.3";
+      # Bump `version` and the per-system `hash` values together on each
+      # release. `./update.sh <version>` re-prefetches them for you.
+      #
+      # Since 0.2.x the app is the Electron build shipped from the main
+      # soft-machine repo (the Tauri app ended at 0.1.3), and releases are
+      # cut automatically per main-branch commit — this pin tracks the
+      # latest version update.sh was run against, not necessarily the
+      # newest release.
+      version = "0.2.1";
       base = "https://github.com/Soft-Machine-io/desktop-releases/releases/download/v${version}";
 
       # Per-system release artifact and its sha256. The desktop CI ships no
@@ -19,18 +25,19 @@
       artifacts = {
         "x86_64-linux" = {
           name = "Soft-Machine-linux-x86_64.AppImage";
-          hash = "sha256-iiGElUeX129P8O8orFCOjcv7gk/S5D4iHUSl9tMSVEM=";
+          hash = "sha256-0YagW65887ycCQl13AVu9TQ6RrAAH7Aj2L/vBdJJkjY=";
         };
         "aarch64-darwin" = {
           name = "Soft-Machine-macos-arm64.dmg";
-          hash = "sha256-eT+o7lk2u9HmA/ZV1KCPIhEMF7divq2bJE9Ig3FlviI=";
+          hash = "sha256-e7AFif1bFh19ylqSvUiBv3GWZXInWBpGbheIZ1Gdky0=";
         };
       };
 
       systems = builtins.attrNames artifacts;
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system nixpkgs.legacyPackages.${system});
 
-      # The bundle is "Soft-Machine.app"; its executable is soft-machine-desktop.
+      # The bundle is "Soft-Machine.app"; Electron names the executable after
+      # the product, so it is Contents/MacOS/Soft-Machine.
       appName = "Soft-Machine";
       # The wrapped launcher name is uniform across platforms so `apps.default`
       # can point at it without a per-system branch (appimageTools names the
@@ -78,15 +85,15 @@
               mkdir -p "$out/Applications"
               cp -R "${appName}.app" "$out/Applications/${appName}.app"
               makeWrapper \
-                "$out/Applications/${appName}.app/Contents/MacOS/${pname}" \
+                "$out/Applications/${appName}.app/Contents/MacOS/${appName}" \
                 "$out/bin/${pname}"
               runHook postInstall
             '';
           }
         else
-          # Linux: wrap the AppImage in an FHS env carrying the GTK/WebKit
-          # libraries Tauri (wry) dlopen's at runtime. These mirror the desktop
-          # repo's dev shell so a Nix-installed build matches a from-source one.
+          # Linux: wrap the AppImage in an FHS env carrying the libraries
+          # Electron dlopen's at runtime beyond appimageTools' defaults
+          # (Chromium's sandbox/NSS/audio stack).
           pkgs.appimageTools.wrapType2 {
             inherit
               pname
@@ -96,12 +103,13 @@
               ;
             extraPkgs =
               p: with p; [
-                webkitgtk_4_1
-                gtk3
-                libsoup_3
-                librsvg
-                libayatana-appindicator
-                openssl
+                nss
+                nspr
+                alsa-lib
+                libdrm
+                mesa
+                libxkbcommon
+                libGL
               ];
           };
     in
