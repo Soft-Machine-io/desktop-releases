@@ -101,15 +101,16 @@
               src
               meta
               ;
+            # NB: no mesa/libGL here — the FHS env must not shadow the
+            # host's /run/opengl-driver stack (NixOS matches it to the
+            # kernel/GPU; a mismatched mesa renders a black window).
             extraPkgs =
               p: with p; [
                 nss
                 nspr
                 alsa-lib
                 libdrm
-                mesa
                 libxkbcommon
-                libGL
               ];
           };
     in
