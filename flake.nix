@@ -14,7 +14,7 @@
       # cut automatically per main-branch commit — this pin tracks the
       # latest version update.sh was run against, not necessarily the
       # newest release.
-      version = "0.2.99";
+      version = "0.2.100";
       base = "https://github.com/Soft-Machine-io/desktop-releases/releases/download/v${version}";
 
       # Per-system release artifact and its sha256. The desktop CI ships no
@@ -25,11 +25,11 @@
       artifacts = {
         "x86_64-linux" = {
           name = "Soft-Machine-linux-x86_64.AppImage";
-          hash = "sha256-VOqIWvUP5CBLkKN1NYaqATQUdEy9XHhDl5dPrELjne8=";
+          hash = "sha256-AMs+2QoxFpqHN5bTFa9gSMxJKdH16udKQjn0zI1bJfg=";
         };
         "aarch64-darwin" = {
           name = "Soft-Machine-macos-arm64.dmg";
-          hash = "sha256-9SeZvjXe8rh1fXV8ZbUZT3xcW1wjGUcubV64BEyQzv4=";
+          hash = "sha256-n+JCdvropGfbnnHwKQCsXhEdXoGw7dvz4iYVnMsoz24=";
         };
       };
 
